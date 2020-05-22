@@ -18,6 +18,9 @@ public class LogSaveServiceImpl implements LogOperationsService{
     }
 }
 ```
+##3、add annotation at controller
+@LogTag(name="",title="")
+
 # stop log
 
 ```properties
