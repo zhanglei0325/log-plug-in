@@ -23,7 +23,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * @author zl
@@ -33,7 +32,9 @@ import java.util.Optional;
 @Aspect
 @Order(10)
 public class LogPersistAspect {
-    /** logger */
+    /**
+     * logger
+     */
     private static final Logger log = LoggerFactory.getLogger(LogPersistAspect.class);
 
     @Resource
@@ -45,15 +46,15 @@ public class LogPersistAspect {
         try {
             logzlVO = analysisData(joinPoint);
         } catch (Exception e) {
-            log.error("保存日志失败：",e);
+            log.error("保存日志失败：", e);
         }
         Object proceed = joinPoint.proceed();
-        if(logzlVO != null){
+        if (logzlVO != null) {
             try {
                 logzlVO.setResults(JSON.toJSONString(proceed));
                 logService.saveOrUpdate(logzlVO);
             } catch (Exception e) {
-                log.error("方法返回结果获取日志失败：",e);
+                log.error("方法返回结果获取日志失败：", e);
             }
         }
         return proceed;
@@ -61,7 +62,7 @@ public class LogPersistAspect {
 
     private LogzlVO analysisData(ProceedingJoinPoint joinPoint) {
         HttpServletRequest request = getHttpServletRequest();
-        if(request == null){
+        if (request == null) {
             return null;
         }
         UserAgent userAgent = getOperatingSystem(request);
@@ -75,24 +76,24 @@ public class LogPersistAspect {
         String browserName = browser.getName();
         String params = Arrays.toString(joinPoint.getArgs());
         LogTag logTag = getAnnotationLog(joinPoint);
-        String title = Optional.ofNullable(logTag).isPresent()? logTag.title():"";
-        String name = Optional.ofNullable(logTag).isPresent()? logTag.name():"";
-        int type = Optional.ofNullable(logTag).isPresent()? logTag.type():0;
-        LogzlVO vo = new LogzlVO(title,name,type,url,method,ip,systemName,browserName,params,null);
+        String title = logTag != null ? logTag.title() : "";
+        String name = logTag != null ? logTag.name() : "";
+        int type = logTag != null ? logTag.type() : 0;
+        LogzlVO vo = new LogzlVO(title, name, type, url, method, ip, systemName, browserName, params, null);
         logService.save(vo);
         return vo;
     }
 
-    private UserAgent getOperatingSystem(HttpServletRequest request){
+    private UserAgent getOperatingSystem(HttpServletRequest request) {
         return UserAgent.parseUserAgentString(request.getHeader("User-Agent"));
     }
 
     /**
      * 获取request
      */
-    private HttpServletRequest getHttpServletRequest(){
+    private HttpServletRequest getHttpServletRequest() {
         ServletRequestAttributes sra = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if(sra==null){
+        if (sra == null) {
             return null;
         }
         return sra.getRequest();
